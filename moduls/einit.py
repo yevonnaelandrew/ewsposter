@@ -16,10 +16,10 @@ def ecfg(name, version):
 
     MODUL = "EINIT"
     ECFG = {}
-    ECFG['HONEYLIST'] = ['glastopfv3', 'dionaea', 'honeytrap', 'emobility', 'conpot', 'cowrie',
+    ECFG['HONEYLIST'] = ['glastopfv3', 'dionaea', 'gridpot', 'honeytrap', 'emobility', 'conpot', 'cowrie',
                          'elasticpot', 'suricata', 'rdpy', 'mailoney', 'vnclowpot', 'heralding',
                          'ciscoasa', 'tanner', 'glutton', 'honeysap', 'adbhoney', 'fatt', 'ipphoney',
-                         'dicompot', 'medpot', 'honeypy', 'citrix']
+                         'dicompot', 'medpot', 'honeypy', 'citrix', 'honeytrapv2']
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--configpath", help="load configuration file from Path")
@@ -216,6 +216,28 @@ def ecfg(name, version):
     else:
         EWSJSON["json"] = False
 
+
+    """ Read MongoDB Config Parameter """
+
+    ITEMS = ("mongodb", "host", "database", "collection")
+    MONGOCFG = readcfg2("MONGODB", ITEMS, ECFG["cfgfile"])
+
+    if 'mongodb' not in MONGOCFG:
+        MONGOCFG['mongodb'] = False
+    elif MONGOCFG['mongodb'].lower() == "true":
+        MONGOCFG['mongodb'] = True
+    else:
+        MONGOCFG['mongodb'] = False
+
+    if MONGOCFG['mongodb'] is True:
+        for index in ["host", "database", "collection"]:
+
+            if MONGOCFG[index] == '' and MONGOCFG["mongodb"] is True:
+                logger.error(f"Missing {index} in [MONGODB] config section. Abort!", '1E')
+            else:
+                MONGOCFG['mongo_' + index] = MONGOCFG[index]
+                MONGOCFG[index] = ''
+
     """ Read INFLUX Config Parameter """
 
     ITEMS = ('influxdb', 'host', 'port', 'username', 'password', 'token', 'bucket', 'org')
@@ -242,6 +264,7 @@ def ecfg(name, version):
     ECFG.update(EWSCFG)
     ECFG.update(HCFG)
     ECFG.update(EWSJSON)
+    ECFG.update(MONGOCFG)
 
     """ Setup UUID """
 

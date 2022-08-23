@@ -7,6 +7,7 @@ from datetime import datetime
 from lxml import etree
 from moduls.elog import ELog
 from xmljson import BadgerFish
+from pymongo import MongoClient
 import base64
 import configparser
 import hpfeeds
@@ -32,6 +33,7 @@ class EAlert:
         self.esm = ""
         self.jesm = ""
         self.iesm = []
+        self.mesm = []
         self.counter = 0
         self.hcounter = 0
         self.jsonfailcounter = 0
@@ -120,6 +122,25 @@ class EAlert:
                 return(dict(data), dict(download))
             else:
                 return('false', 'false')
+
+        if self.MODUL == 'GRIDPOT' and self.sqlite3connect is True:
+            if self.maxid == 0:
+                try:
+                    self.c.execute("SELECT max(id) from events;")
+                    self.maxid = self.c.fetchone()["max(id)"]
+                    if self.maxid is None:
+                        self.maxid = 0
+                        return('false')
+                except sqlite3.OperationalError as e:
+                    self.logger.warning(f'SQLite3 Error on Gridpot Database {e}', '2')
+                    return('false')
+
+            if self.maxid >= linecounter:
+                self.c.execute("SELECT * from events where id = ?", (str(linecounter),))
+                self.alertCount(self.MODUL, "add_counter", item)
+                return(dict(self.c.fetchone()))
+            else:
+                return('')
 
         self.con.close()
         return()
@@ -344,6 +365,46 @@ class EAlert:
         client.write_points(self.iesm)
         self.iesm.clear()
 
+    def mongoAlert(self):
+        mAlert = {}
+        mAlert["measurement"] = "honeypots"
+        mAlert["tags"] = dict(honeypot=self.MODUL.lower()
+                              )
+        mAlert["time"] = f"{self.DATA['timestamp'][0:10]}T{self.DATA['timestamp'][11:19]}{self.DATA['timezone']}"
+        mAlert["fields"] = dict(analyzer_id=self.DATA['analyzer_id'],
+                                source_address=self.DATA['source_address'],
+                                source_port=int(self.DATA['source_port']),
+                                source_protokoll=self.DATA['source_protokoll'],
+                                target_address=self.DATA['target_address'],
+                                target_port=int(self.DATA['target_port']),
+                                target_protokoll=self.DATA['target_protokoll']
+                                )
+        """ append cident, corigin, ctext """
+        for index in ['cident', 'corigin', 'ctext']:
+            if index in self.DATA:
+                mAlert['fields'][index] = self.DATA[index]
+
+        """ append additional data """
+        for key, value in self.ADATA.items():
+            if key in ['host', 'externalIP', 'internalIP', 'uuid']:
+                continue
+            else:
+                mAlert['fields'][key] = value
+
+        if self.REQUEST:
+            mAlert["request_"] = self.REQUEST
+
+        self.mesm.append(mAlert)
+
+        return()
+
+    def mongoWrite(self):
+        client = MongoClient(self.ECFG['mongo_host'])
+        database = self.ECFG['mongo_database']
+        collection = self.ECFG['mongo_collection']
+        client[database][collection].insert_many(self.mesm)
+        self.mesm.clear()
+
     def ewsVerbose(self):
         print(f'--------------- {self.MODUL} ---------------')
         print(f'NodeID          : {self.DATA["analyzer_id"]}')
@@ -416,6 +477,7 @@ class EAlert:
         self.ewsAlert() if self.ECFG['ews'] is True or self.ECFG["hpfeed"] is True else None
         self.jsonAlert() if self.ECFG['json'] is True else None
         self.influxAlert() if self.ECFG['influxdb'] is True else None
+        self.mongoAlert() if self.ECFG['mongodb'] is True else None
 
         """ View Alert details if ARG Verbose is on """
         if self.ECFG['a.verbose'] is True:
@@ -472,6 +534,10 @@ class EAlert:
                 self.hpfeedsend('json')
             else:
                 self.hpfeedsend('xml')
+
+        """ Check MongoDB write """
+        if self.ECFG['mongodb'] is True:
+            self.mongoWrite()
 
         """ Check InfluxDB write """
         if self.ECFG['influxdb'] is True:
@@ -608,13 +674,13 @@ class EAlert:
             return(False, None)
 
         if os.path.isfile(malwaredir + os.sep + malwarefile) is True:
-            if os.path.getsize(malwaredir + os.sep + malwarefile) <= 5 * 1024 * 1024:
+            if os.path.getsize(malwaredir + os.sep + malwarefile) <= 10 * 1024 * 1024:
                 payload = open(malwaredir + os.sep + malwarefile, "rb").read()
                 if localremove is True:
                     os.remove(malwaredir + os.sep + malwarefile)
                 return(True, base64.b64encode(payload))
             else:
-                self.logger.warning(f"FILE {malwaredir}{os.sep}{malwarefile} is bigger than 5 MB! Not send.", '2')
+                self.logger.warning(f"FILE {malwaredir}{os.sep}{malwarefile} is bigger than 10 MB! Not send.", '2')
                 return(False, None)
         else:
             self.logger.warning(f"FILE {malwaredir}{os.sep}{malwarefile} does not exist!", '2')

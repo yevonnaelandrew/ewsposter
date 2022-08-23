@@ -15,6 +15,9 @@ from moduls.ealert import EAlert
 from moduls.esend import ESend
 import base64
 from urllib import parse
+from ast import literal_eval as make_tuple
+import functools
+import json
 
 name = "EWS Poster"
 version = "v1.21"
@@ -657,6 +660,99 @@ def mailoney():
     mailoney.finAlert()
     return()
 
+def honeytrapv2():
+
+    honeytrapv2 = EAlert('honeytrapv2', ECFG)
+
+    ITEMS = ['honeytrapv2', 'nodeid', 'logfile']
+    HONEYPOT = (honeytrapv2.readCFG(ITEMS, ECFG['cfgfile']))
+
+    if 'error_files' in HONEYPOT and HONEYPOT['error_files'] is False:
+        print(f"    -> {HONEYPOT['error_files_msg']}. Skip Honeypot.")
+        return()
+
+    while True:
+        line = honeytrapv2.lineREAD(HONEYPOT['logfile'], 'json')
+        print(line)
+
+        if len(line) == 0:
+            break
+        if line == 'jsonfail':
+            continue
+        if 'category' not in line:
+            continue
+        if line['category'] == 'heartbeat':
+            continue
+
+        honeytrapv2.data('analyzer_id', HONEYPOT['nodeid']) if 'nodeid' in HONEYPOT else None
+
+        honeytrapv2.data('timestamp', f"{line['date'][0:10]} {line['date'][11:19]}")
+        honeytrapv2.data("timezone", time.strftime('%z'))
+
+        honeytrapv2.data('source_address', line['source-ip']) if 'source-ip' in line else None
+        honeytrapv2.data('source_port', line['source-port']) if 'source-port' in line else None
+
+        honeytrapv2.data('target_address', line['destination-ip']) if 'destination-ip' in line else None
+        honeytrapv2.data('target_port', line['destination-port']) if 'destination-port' in line else None
+
+        honeytrapv2.data('source_protokoll', "tcp")
+        honeytrapv2.data('target_protokoll', "tcp")
+
+        honeytrapv2.request("description", "Honeytrap Honeypot")
+
+        honeytrapv2.adata('hostname', ECFG['hostname'])
+        honeytrapv2.adata('externalIP', ECFG['ip_ext'])
+        honeytrapv2.adata('internalIP', ECFG['ip_int'])
+        honeytrapv2.adata('uuid', ECFG['uuid'])
+
+        if line['category'] == 'ethereum':
+            honeytrapv2.adata('ethereum_jsonrpc', line['ethereum.jsonrpc'])
+            honeytrapv2.adata('ethereum_method', line['ethereum.method'])
+            honeytrapv2.adata('http_header_accept', line['http.header.accept'][0])
+            honeytrapv2.adata('http_header_content-type', line['http.header.content-type'][0])
+            honeytrapv2.adata('http_header_user-agent', line['http.header.user-agent'][0])
+            honeytrapv2.adata('http_method', line['http.method'])
+            honeytrapv2.adata('http_user-agent', line['http.user-agent'])
+            honeytrapv2.adata('payload-params', json.loads(line['payload'])['params'])
+            honeytrapv2.adata('payload-hex', line['payload-hex'])
+            honeytrapv2.adata('payload-length', line['payload-length'])
+            honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
+        elif line["category"] == 'smtp':
+            honeytrapv2.adata('smtp_line', line['smtp.line']) if len(line['smtp.line']) > 0 else None
+            honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
+        elif line['category'] == 'ssh':            
+            honeytrapv2.adata('sessionid', line['ssh.sessionid']) if 'ssh.sessionid' in line else None
+            honeytrapv2.adata('username', line['ssh.username']) if 'ssh.username' in line else None
+            honeytrapv2.adata('password', line['ssh.password']) if 'ssh.password' in line else None
+            honeytrapv2.adata('ssh_request-type', line['ssh.request-type']) if 'ssh.request-type' in line else None
+            honeytrapv2.adata('ssh_payload', line['ssh.payload']) if 'ssh.payload' in line else None
+            honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
+        elif line['category'] == 'redis':
+            honeytrapv2.adata('redis_command', line['redis.command'])            
+            honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
+        elif line['category'] == 'adb':
+            honeytrapv2.adata('payload', line['payload'])
+            honeytrapv2.adata('payload-hex', line['payload-hex'])
+            honeytrapv2.adata('payload-length', line['payload-length'])
+        elif line['category'] == 'ldap':
+            honeytrapv2.adata('ldap_message-id', line['ldap.message-id'])            
+            honeytrapv2.adata('ldap_version', line['ldap.version']) if 'ldap.version' in line else None
+            honeytrapv2.adata('ldap_username', line['ldap.username']) if 'ldap.username' in line else None
+            honeytrapv2.adata('ldap_password', line['ldap.password']) if 'ldap.password' in line else None
+            honeytrapv2.adata('ldap_search-basedn', line['ldap.search-basedn']) if 'ldap.search-basedn' in line else None
+            honeytrapv2.adata('ldap_search-derefaliases', line['ldap.search-derefaliases']) if 'ldap.search-derefaliases' in line else None
+            honeytrapv2.adata('ldap_search-filter', line['ldap.search-filter']) if 'ldap.search-filter' in line else None
+            honeytrapv2.adata('ldap_search-filtervalue', line['ldap.search-filtervalue']) if 'ldap.search-filtervalue' in line else None
+            honeytrapv2.adata('ldap_search-scope', line['ldap.search-scope']) if 'ldap.search-scope' in line else None
+            honeytrapv2.adata('ldap_search-sizelimit', line['ldap.search-sizelimit']) if 'ldap.search-sizelimit' in line else None
+            honeytrapv2.adata('ldap_search-timelimit', line['ldap.search-timelimit']) if 'ldap.search-timelimit' in line else None
+            honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
+
+        if honeytrapv2.buildAlert() == "sendlimit":
+            break
+
+    honeytrapv2.finAlert()
+    return()
 
 def conpot():
 
@@ -716,6 +812,63 @@ def conpot():
 
         conpot.finAlert()
 
+    return()
+
+def gridpot():
+
+    gridpot = EAlert('gridpot', ECFG)
+
+    ITEMS = ['gridpot', 'nodeid', 'sqlitedb']
+    HONEYPOT = (gridpot.readCFG(ITEMS, ECFG['cfgfile']))
+
+    if 'error_files' in HONEYPOT and HONEYPOT['error_files'] is False:
+        print(f"    -> {HONEYPOT['error_files_msg']}. Skip Honeypot.")
+        return()
+
+    while True:
+        line = gridpot.lineSQLITE(HONEYPOT['sqlitedb'])
+
+        if len(line) == 0 or line == 'false':
+            break
+
+        gridpot.data('analyzer_id', HONEYPOT['nodeid']) if 'nodeid' in HONEYPOT else None
+
+        if 'timestamp' in line:
+            gridpot.data('timestamp', f"{line['timestamp'][0:10]} {line['timestamp'][11:19]}")
+            gridpot.data("timezone", time.strftime('%z'))
+
+        print(line)
+        gridpot.data('source_address', line["remote"].split(',')[0][2:-1])
+        gridpot.data('target_address', ECFG['ip_ext'])
+        gridpot.data('source_port', line["remote"].split(',')[1][1:-1])
+        if (line["protocol"] == "modbus"):
+            gridpot.data('target_port', '502')
+        elif line["protocol"] == "s7comm":
+            gridpot.data('target_port', '102')
+        elif line["protocol"] == "http":
+            gridpot.data('target_port', '8000')
+        else:
+            try:
+                gridpot.data('target_port', make_tuple(line["request"].replace('\n', '').replace('\r', ''))[1][0].split(':')[-1])
+            except:
+                pass
+        gridpot.data('source_protokoll', line["protocol"])
+        gridpot.data('target_protokoll', line["protocol"])
+
+        gridpot.request("description", "Gridpot")
+        gridpot.request('request', line['request']) if 'request' in line and len(line['request']) > 0 else None
+
+        gridpot.adata('hostname', ECFG['hostname'])
+        gridpot.adata('externalIP', ECFG['ip_ext'])
+        gridpot.adata('internalIP', ECFG['ip_int'])
+        gridpot.adata('uuid', ECFG['uuid'])
+
+        gridpot.adata('request', line['request']) if 'request' in line and len(line['request']) > 0 else None
+
+        if gridpot.buildAlert() == "sendlimit":
+            break
+
+    gridpot.finAlert()
     return()
 
 
@@ -820,7 +973,6 @@ def emobility():
 
     emobility.finAlert()
     return()
-
 
 def dionaea():
 
