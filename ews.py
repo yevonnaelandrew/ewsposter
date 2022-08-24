@@ -723,7 +723,14 @@ def honeytrapv2():
                 if 'params' in line['payload']:
                      honeytrapv2.adata('payload-params', json.loads(line['payload'])['params'])
         elif line["category"] == 'smtp':
-            honeytrapv2.adata('smtp_line', line['smtp.line']) if len(line['smtp.line']) > 0 else None
+            honeytrapv2.adata('smtp_line', line['smtp.line']) if 'smtp.line' in line else None
+            honeytrapv2.adata('smtp_date', line['smtp.Date']) if 'smtp.Date' in line else None
+            honeytrapv2.adata('smtp_from', line['smtp.From']) if 'smtp.From' in line else None
+            honeytrapv2.adata('smtp_subject', line['smtp.Subject']) if 'smtp.Subject' in line else None
+            honeytrapv2.adata('smtp_to', line['smtp.To']) if 'smtp.To' in line else None
+            honeytrapv2.adata('smtp_x-library', line['smtp.X-Library']) if 'smtp.X-Library' in line else None
+            honeytrapv2.adata('smtp_x-priority', line['smtp.X-Priority']) if 'smtp.X-Priority' in line else None
+            honeytrapv2.adata('smtp_body', line['smtp.body']) if 'smtp.body' in line else None
             honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
         elif line['category'] == 'ssh':            
             honeytrapv2.adata('sessionid', line['ssh.sessionid']) if 'ssh.sessionid' in line else None
