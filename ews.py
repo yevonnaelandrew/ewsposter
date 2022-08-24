@@ -716,10 +716,12 @@ def honeytrapv2():
             honeytrapv2.adata('http_proto', line['http.proto']) if 'http.proto' in line else None
             honeytrapv2.adata('http_method', line['http.method']) if 'http.method' in line else None
             honeytrapv2.adata('http_user-agent', line['http.user-agent']) if 'http.user-agent' in line else None
-            honeytrapv2.adata('payload-params', json.loads(line['payload'])['params']) if 'payload' in line else None
             honeytrapv2.adata('payload-hex', line['payload-hex']) if 'payload-hex' in line else None
             honeytrapv2.adata('payload-length', line['payload-length']) if 'payload-length' in line else None
             honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
+            if 'payload' in line:
+                if 'params' in line['payload']:
+                     honeytrapv2.adata('payload-params', json.loads(line['payload'])['params'])
         elif line["category"] == 'smtp':
             honeytrapv2.adata('smtp_line', line['smtp.line']) if len(line['smtp.line']) > 0 else None
             honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
