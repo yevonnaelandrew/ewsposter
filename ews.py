@@ -706,16 +706,19 @@ def honeytrapv2():
         honeytrapv2.adata('uuid', ECFG['uuid'])
 
         if line['category'] == 'ethereum':
-            honeytrapv2.adata('ethereum_jsonrpc', line['ethereum.jsonrpc'])
-            honeytrapv2.adata('ethereum_method', line['ethereum.method'])
-            honeytrapv2.adata('http_header_accept', line['http.header.accept'][0])
-            honeytrapv2.adata('http_header_content-type', line['http.header.content-type'][0])
-            honeytrapv2.adata('http_header_user-agent', line['http.header.user-agent'][0])
-            honeytrapv2.adata('http_method', line['http.method'])
-            honeytrapv2.adata('http_user-agent', line['http.user-agent'])
-            honeytrapv2.adata('payload-params', json.loads(line['payload'])['params'])
-            honeytrapv2.adata('payload-hex', line['payload-hex'])
-            honeytrapv2.adata('payload-length', line['payload-length'])
+            honeytrapv2.adata('ethereum_jsonrpc', line['ethereum.jsonrpc']) if 'ethereum.jsonrpc' in line else None
+            honeytrapv2.adata('ethereum_method', line['ethereum.method']) if 'ethereum.method' in line else None
+            honeytrapv2.adata('http_header_accept', line['http.header.accept'][0]) if 'http.header.accept' in line else None
+            honeytrapv2.adata('http_header_content-type', line['http.header.content-type'][0]) if 'http.header.content-type' in line else None
+            honeytrapv2.adata('http_header_user-agent', line['http.header.user-agent'][0]) if 'http.header.user-agent' in line else None
+            honeytrapv2.adata('http_host', line['http.host']) if 'http.host' in line else None
+            honeytrapv2.adata('http_url', line['http.url']) if 'http.url' in line else None
+            honeytrapv2.adata('http_proto', line['http.proto']) if 'http.proto' in line else None
+            honeytrapv2.adata('http_method', line['http.method']) if 'http.method' in line else None
+            honeytrapv2.adata('http_user-agent', line['http.user-agent']) if 'http.user-agent' in line else None
+            honeytrapv2.adata('payload-params', json.loads(line['payload'])['params']) if 'payload' in line else None
+            honeytrapv2.adata('payload-hex', line['payload-hex']) if 'payload-hex' in line else None
+            honeytrapv2.adata('payload-length', line['payload-length']) if 'payload-length' in line else None
             honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
         elif line["category"] == 'smtp':
             honeytrapv2.adata('smtp_line', line['smtp.line']) if len(line['smtp.line']) > 0 else None
