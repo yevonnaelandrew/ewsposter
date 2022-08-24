@@ -706,6 +706,7 @@ def honeytrapv2():
         honeytrapv2.adata('uuid', ECFG['uuid'])
 
         if line['category'] == 'ethereum':
+            honeytrapv2.adata('honeytrap_category', 'ethereum')
             honeytrapv2.adata('ethereum_jsonrpc', line['ethereum.jsonrpc']) if 'ethereum.jsonrpc' in line else None
             honeytrapv2.adata('ethereum_method', line['ethereum.method']) if 'ethereum.method' in line else None
             honeytrapv2.adata('http_header_accept', line['http.header.accept'][0]) if 'http.header.accept' in line else None
@@ -723,6 +724,7 @@ def honeytrapv2():
                 if 'params' in line['payload']:
                      honeytrapv2.adata('payload-params', json.loads(line['payload'])['params'])
         elif line["category"] == 'smtp':
+            honeytrapv2.adata('honeytrap_category', 'smtp')
             honeytrapv2.adata('smtp_line', line['smtp.line']) if 'smtp.line' in line else None
             honeytrapv2.adata('smtp_date', line['smtp.Date']) if 'smtp.Date' in line else None
             honeytrapv2.adata('smtp_from', line['smtp.From']) if 'smtp.From' in line else None
@@ -732,7 +734,8 @@ def honeytrapv2():
             honeytrapv2.adata('smtp_x-priority', line['smtp.X-Priority']) if 'smtp.X-Priority' in line else None
             honeytrapv2.adata('smtp_body', line['smtp.body']) if 'smtp.body' in line else None
             honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
-        elif line['category'] == 'ssh':            
+        elif line['category'] == 'ssh':
+            honeytrapv2.adata('honeytrap_category', 'ssh')
             honeytrapv2.adata('sessionid', line['ssh.sessionid']) if 'ssh.sessionid' in line else None
             honeytrapv2.adata('username', line['ssh.username']) if 'ssh.username' in line else None
             honeytrapv2.adata('password', line['ssh.password']) if 'ssh.password' in line else None
@@ -740,13 +743,16 @@ def honeytrapv2():
             honeytrapv2.adata('ssh_payload', line['ssh.payload']) if 'ssh.payload' in line else None
             honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
         elif line['category'] == 'redis':
+            honeytrapv2.adata('honeytrap_category', 'redis')
             honeytrapv2.adata('redis_command', line['redis.command'])            
             honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
         elif line['category'] == 'adb':
+            honeytrapv2.adata('honeytrap_category', 'adb')
             honeytrapv2.adata('payload', line['payload'])
             honeytrapv2.adata('payload-hex', line['payload-hex'])
             honeytrapv2.adata('payload-length', line['payload-length'])
         elif line['category'] == 'ldap':
+            honeytrapv2.adata('honeytrap_category', 'ldap')
             honeytrapv2.adata('ldap_message-id', line['ldap.message-id'])            
             honeytrapv2.adata('ldap_version', line['ldap.version']) if 'ldap.version' in line else None
             honeytrapv2.adata('ldap_username', line['ldap.username']) if 'ldap.username' in line else None
