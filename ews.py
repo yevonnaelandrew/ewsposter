@@ -722,7 +722,10 @@ def honeytrapv2():
             honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
             if 'payload' in line:
                 if 'params' in line['payload']:
-                     honeytrapv2.adata('payload-params', json.loads(line['payload'])['params'])
+                    if type(json.loads(line['payload'])['params'][0]) == str:
+                        honeytrapv2.adata('payload-params-val', json.loads(line['payload'])['params'])
+                    elif type(json.loads(line['payload'])['params'][0]) == dict:
+                        honeytrapv2.adata('payload-params', json.loads(line['payload'])['params'])
         elif line["category"] == 'smtp':
             honeytrapv2.adata('honeytrap_category', 'smtp')
             honeytrapv2.adata('smtp_line', line['smtp.line']) if 'smtp.line' in line else None
