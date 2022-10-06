@@ -673,7 +673,6 @@ def honeytrapv2():
 
     while True:
         line = honeytrapv2.lineREAD(HONEYPOT['logfile'], 'json')
-        print(line)
 
         if len(line) == 0:
             break
@@ -722,6 +721,10 @@ def honeytrapv2():
             honeytrapv2.adata('honeytrap_type', line['type']) if 'type' in line else None
             if 'payload' in line:
                 if 'params' in line['payload']:
+                    try:
+                        _type = type(json.loads(line['payload'])['params'][0])
+                    except:
+                        continue
                     if type(json.loads(line['payload'])['params'][0]) == str:
                         honeytrapv2.adata('payload-params-val', json.loads(line['payload'])['params'])
                     elif type(json.loads(line['payload'])['params'][0]) == dict:
