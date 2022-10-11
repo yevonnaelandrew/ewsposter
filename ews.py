@@ -51,8 +51,8 @@ def ipphoney():
         ipphoney.data('target_address', line['dst_ip']) if 'dst_ip' in line else None
         ipphoney.data('source_port', line['src_port']) if 'src_port' in line else None
         ipphoney.data('target_port', line['dst_port']) if 'dst_port' in line else None
-        ipphoney.data('source_protokoll', "tcp")
-        ipphoney.data('target_protokoll', "tcp")
+        ipphoney.data('source_protocol', "tcp")
+        ipphoney.data('target_protocol', "tcp")
 
         ipphoney.request("description", "IPP Honeypot")
 
@@ -97,8 +97,8 @@ def fatt():
         fatt.data('target_address', ECFG['ip_ext'])
         fatt.data('source_port', str(line['sourcePort'])) if 'sourcePort' in line else None
         fatt.data('target_port', str(line['destinationPort'])) if 'destinationPort' in line else None
-        fatt.data('source_protokoll', "tcp")
-        fatt.data('target_protokoll', "tcp")
+        fatt.data('source_protocol', "tcp")
+        fatt.data('target_protocol', "tcp")
 
         fatt.request("description", "FATT Honeypot")
 
@@ -145,8 +145,8 @@ def adbhoney():
         adbhoney.data('target_address', ECFG['ip_ext'])
         adbhoney.data('source_port', str(line['src_port'])) if 'src_port' in line else None
         adbhoney.data('target_port', str(line['dest_port'])) if 'dest_port' in line else None
-        adbhoney.data('source_protokoll', "tcp")
-        adbhoney.data('target_protokoll', "tcp")
+        adbhoney.data('source_protocol', "tcp")
+        adbhoney.data('target_protocol', "tcp")
 
         adbhoney.request("description", "ADBHoney Honeypot")
 
@@ -191,8 +191,8 @@ def honeysap():
         honeysap.data('target_address', ECFG['ip_ext'])
         honeysap.data('source_port', str(line['source_port'])) if 'source_port' in line else None
         honeysap.data('target_port', str(line['target_port'])) if 'target_port' in line else None
-        honeysap.data('source_protokoll', "tcp")
-        honeysap.data('target_protokoll', "tcp")
+        honeysap.data('source_protocol', "tcp")
+        honeysap.data('target_protocol', "tcp")
 
         honeysap.request("description", "Honeysap Honeypot")
         honeysap.request("request", line['request']) if line['request'] != "" else None
@@ -240,8 +240,8 @@ def dicompot():
         dicompot.data('target_address', ECFG['ip_ext'])
         dicompot.data('source_port', str(line['Port'])) if 'Port' in line else None
         dicompot.data('target_port', "11112")
-        dicompot.data('source_protokoll', "tcp")
-        dicompot.data('target_protokoll', "tcp")
+        dicompot.data('source_protocol', "tcp")
+        dicompot.data('target_protocol', "tcp")
 
         dicompot.request("description", "Dicompot Honeypot")
 
@@ -286,8 +286,8 @@ def elasticpot():
         elasticpot.data('target_address', line['dst_ip']) if 'dst_ip' in line else None
         elasticpot.data('source_port', str(line['src_port'])) if 'src_port' in line else None
         elasticpot.data('target_port', str(line['dst_port'])) if 'dst_port' in line else None
-        elasticpot.data('source_protokoll', "tcp")
-        elasticpot.data('target_protokoll', "tcp")
+        elasticpot.data('source_protocol', "tcp")
+        elasticpot.data('target_protocol', "tcp")
 
         elasticpot.request("description", "ElasticSearch Honeypot : Elasticpot")
         elasticpot.request("url", parse.quote(line["url"].encode('ascii', 'ignore'))) if 'url' in line else None
@@ -342,8 +342,8 @@ def glutton():
         glutton.data('target_address', ECFG['ip_ext'])
         glutton.data('source_port', str(line['src_port'])) if 'src_port' in line else None
         glutton.data('target_port', str(line['dest_port'])) if 'dest_port' in line else None
-        glutton.data('source_protokoll', "tcp")
-        glutton.data('target_protokoll', "tcp")
+        glutton.data('source_protocol', "tcp")
+        glutton.data('target_protocol', "tcp")
 
         glutton.request("description", "Glutton Honeypot")
         glutton.request("binary", base64.b64encode(codecs.decode(line['payload_hex'], 'hex')).decode()) if "payload_hex" in line else None
@@ -391,8 +391,8 @@ def ciscoasa():
         ciscoasa.data('target_address', ECFG['ip_ext'])
         ciscoasa.data('source_port', "0")
         ciscoasa.data('target_port', "8443")
-        ciscoasa.data('source_protokoll', "tcp")
-        ciscoasa.data('target_protokoll', "tcp")
+        ciscoasa.data('source_protocol', "tcp")
+        ciscoasa.data('target_protocol', "tcp")
 
         ciscoasa.request("description", "Cisco-ASA Honeypot")
         ciscoasa.request("payload", str(line['payload_printable'])) if 'payload' in line else None
@@ -438,8 +438,8 @@ def tanner():
         tanner.data('target_address', ECFG['ip_ext'])
         tanner.data('source_port', str(line['peer']['port'])) if 'port' in line['peer'] else None
         tanner.data('target_port', "80")
-        tanner.data('source_protokoll', "tcp")
-        tanner.data('target_protokoll', "tcp")
+        tanner.data('source_protocol', "tcp")
+        tanner.data('target_protocol', "tcp")
 
         tanner.request("description", "Tanner Honeypot")
         tanner.request("url", parse.quote(line["path"].encode('ascii', 'ignore'))) if line['path'] != "" else None
@@ -493,21 +493,28 @@ def rdpy():
         line = rdpy.lineREAD(HONEYPOT['logfile'], 'simple')
 
         if line[0:3] == '[*]':
-            continue
+            if line[0:10]:
+                pass
+            else:
+                continue
         if len(line) == 0:
+            break
+        
+        try:
+            line.split("Connection from ")[1].split(":")[1]
+        except:
             break
 
         rdpy.data('analyzer_id', HONEYPOT['nodeid']) if 'nodeid' in HONEYPOT else None
-
-        rdpy.data('timestamp', f"{line[0:10]} {line[11:19]}")
+        rdpy.data('timestamp', f"{line[10:20]} {line[21:29]}")
         rdpy.data("timezone", time.strftime('%z'))
-
+        
         rdpy.data('source_address', str(line.split("Connection from ")[1].split(":")[0])) if 'Connection from ' in line else None
         rdpy.data('target_address', ECFG['ip_ext'])
         rdpy.data('source_port', str(line.split("Connection from ")[1].split(":")[1])) if 'Connection from ' in line else None
         rdpy.data('target_port', "3389")
-        rdpy.data('source_protokoll', "tcp")
-        rdpy.data('target_protokoll', "tcp")
+        rdpy.data('source_protocol', "tcp")
+        rdpy.data('target_protocol', "tcp")
 
         rdpy.request("description", "RDP Honeypot RDPY")
 
@@ -549,8 +556,8 @@ def vnclowpot():
         vnclowpot.data('target_address', ECFG['ip_ext'])
         vnclowpot.data('source_port', str(line.split(' ')[2].split(':')[1]))
         vnclowpot.data('target_port', "5900")
-        vnclowpot.data('source_protokoll', "tcp")
-        vnclowpot.data('target_protokoll', "tcp")
+        vnclowpot.data('source_protocol', "tcp")
+        vnclowpot.data('target_protocol', "tcp")
 
         vnclowpot.request("description", "vnc Honeypot vnclowpot")
 
@@ -594,8 +601,8 @@ def heralding():
         heralding.data('target_address', str(line.split(',')[5]))
         heralding.data('source_port', str(line.split(',')[4]))
         heralding.data('target_port', str(line.split(',')[6]))
-        heralding.data('source_protokoll', "tcp")
-        heralding.data('target_protokoll', "tcp")
+        heralding.data('source_protocol', "tcp")
+        heralding.data('target_protocol', "tcp")
 
         heralding.request("description", "Heralding Honeypot")
 
@@ -644,8 +651,8 @@ def mailoney():
         mailoney.data('target_address', ECFG['ip_ext'])
         mailoney.data('source_port', str(line['src_port'])) if 'src_port' in line else None
         mailoney.data('target_port', "25")
-        mailoney.data('source_protokoll', "tcp")
-        mailoney.data('target_protokoll', "tcp")
+        mailoney.data('source_protocol', "tcp")
+        mailoney.data('target_protocol', "tcp")
 
         mailoney.request("description", "Mail Honeypot mailoney")
 
@@ -694,8 +701,8 @@ def honeytrapv2():
         honeytrapv2.data('target_address', line['destination-ip']) if 'destination-ip' in line else None
         honeytrapv2.data('target_port', line['destination-port']) if 'destination-port' in line else None
 
-        honeytrapv2.data('source_protokoll', "tcp")
-        honeytrapv2.data('target_protokoll', "tcp")
+        honeytrapv2.data('source_protocol', "tcp")
+        honeytrapv2.data('target_protocol', "tcp")
 
         honeytrapv2.request("description", "Honeytrap Honeypot")
 
@@ -818,8 +825,8 @@ def conpot():
             conpot.data('target_address', line['dst_ip']) if 'dst_ip' in line else None
             conpot.data('source_port', str(line['src_port'])) if 'src_port' in line else None
             conpot.data('target_port', str(line['dst_port'])) if 'dst_ip' in line else None
-            conpot.data('source_protokoll', "tcp")
-            conpot.data('target_protokoll', "tcp")
+            conpot.data('source_protocol', "tcp")
+            conpot.data('target_protocol', "tcp")
 
             conpot.request('description', 'Conpot Honeypot')
             conpot.request('request', line['request']) if 'request' in line and line['request'] != "" else None
@@ -876,8 +883,8 @@ def gridpot():
                 gridpot.data('target_port', make_tuple(line["request"].replace('\n', '').replace('\r', ''))[1][0].split(':')[-1])
             except:
                 pass
-        gridpot.data('source_protokoll', line["protocol"])
-        gridpot.data('target_protokoll', line["protocol"])
+        gridpot.data('source_protocol', line["protocol"])
+        gridpot.data('target_protocol', line["protocol"])
 
         gridpot.request("description", "Gridpot")
         gridpot.request('request', line['request']) if 'request' in line and len(line['request']) > 0 else None
@@ -925,8 +932,8 @@ def glastopfv3():
         glastopfv3.data('target_address', ECFG['ip_ext'])
         glastopfv3.data('source_port', re.sub("^.*:", "", line["source"]))
         glastopfv3.data('target_port', '80')
-        glastopfv3.data('source_protokoll', "tcp")
-        glastopfv3.data('target_protokoll', "tcp")
+        glastopfv3.data('source_protocol', "tcp")
+        glastopfv3.data('target_protocol', "tcp")
 
         glastopfv3.request("description", "WebHoneypot : Glastopf v3.1")
         glastopfv3.request("url", parse.quote(line['request_url'].encode('ascii', 'ignore'))) if "request_url" in line else None
@@ -981,8 +988,8 @@ def emobility():
         emobility.data('target_address', f"{dstipandport.split('.')[0]}.{dstipandport.split('.')[1]}.{dstipandport.split('.')[2]}.{dstipandport.split('.')[3]}")
         emobility.data('source_port', f"{srcipandport.split('.')[4]}")
         emobility.data('target_port', f"{dstipandport.split('.')[4]}")
-        emobility.data('source_protokoll', "tcp")
-        emobility.data('target_protokoll', "tcp")
+        emobility.data('source_protocol', "tcp")
+        emobility.data('target_protocol', "tcp")
 
         emobility.request('description', 'Emobility Honeypot')
         emobility.request('url', parse.quote(url.encode('ascii', 'ignore')))
@@ -1031,8 +1038,8 @@ def dionaea():
         dionaea.data('target_address', line['local_host']) if 'local_host' in line else None
         dionaea.data('source_port', line['remote_port']) if 'remote_port' in line else None
         dionaea.data('target_port', line['local_port']) if 'local_port' in line else None
-        dionaea.data('source_protokoll', line['connection_transport']) if 'connection_transport' in line else None
-        dionaea.data('target_protokoll', line['connection_transport']) if 'connection_transport' in line else None
+        dionaea.data('source_protocol', line['connection_transport']) if 'connection_transport' in line else None
+        dionaea.data('target_protocol', line['connection_transport']) if 'connection_transport' in line else None
 
         dionaea.request('description', 'Network Honeyport Dionaea v0.1.0')
 
@@ -1097,8 +1104,8 @@ def honeytrap():
         honeytrap.data('target_address', re.sub(":.*$", "", dest)) if dest else None
         honeytrap.data('source_port', re.sub("^.*:", "", source)) if source else None
         honeytrap.data('target_port', re.sub("^.*:", "", dest)) if dest else None
-        honeytrap.data('source_protokoll', protocol) if protocol else None
-        honeytrap.data('target_protokoll', protocol) if protocol else None
+        honeytrap.data('source_protocol', protocol) if protocol else None
+        honeytrap.data('target_protocol', protocol) if protocol else None
 
         honeytrap.request('description', 'NetworkHoneypot Honeytrap v1.1')
 
@@ -1200,8 +1207,8 @@ def cowrie():
         cowrie.data('target_address', cowrieSessions[session]['target_ip']) if cowrieSessions[session]['target_ip'] else None
         cowrie.data('source_port', cowrieSessions[session]['source_port']) if cowrieSessions[session]['source_port'] else None
         cowrie.data('target_port', cowrieSessions[session]['target_port']) if cowrieSessions[session]['target_port'] else None
-        cowrie.data('source_protokoll', 'tcp')
-        cowrie.data('target_protokoll', 'tcp')
+        cowrie.data('source_protocol', 'tcp')
+        cowrie.data('target_protocol', 'tcp')
 
         if cowrieSessions[session]['target_port'] == "23" or cowrieSessions[session]['target_port'] == "2323":
             cowrie.request("description", "Telnet Honeypot Cowrie")
@@ -1262,8 +1269,8 @@ def suricata():
         suricata.data('target_address', line['dest_ip']) if 'dest_ip' in line else None
         suricata.data('source_port', line['src_port']) if 'src_port' in line else None
         suricata.data('target_port', line['dest_port']) if 'dest_port' in line else None
-        suricata.data('source_protokoll', line['proto'].lower()) if 'proto' in line else None
-        suricata.data('target_protokoll', line['proto'].lower()) if 'proto' in line else None
+        suricata.data('source_protocol', line['proto'].lower()) if 'proto' in line else None
+        suricata.data('target_protocol', line['proto'].lower()) if 'proto' in line else None
 
         suricata.request('description', 'Suricata Attack')
 
@@ -1308,8 +1315,8 @@ def medpot():
         medpot.data('target_address', ECFG['ip_ext'])
         medpot.data('source_port', line['src_port']) if 'src_port' in line else None
         medpot.data('target_port', '2575')
-        medpot.data('source_protokoll', 'tcp')
-        medpot.data('target_protokoll', 'tcp')
+        medpot.data('source_protocol', 'tcp')
+        medpot.data('target_protocol', 'tcp')
 
         medpot.request('description', 'Medpot Honeypot')
 
@@ -1356,8 +1363,8 @@ def honeypy():
         honeypy.data('target_address', line['dest_ip']) if 'dest_ip' in line else None
         honeypy.data('source_port', line['src_port']) if 'src_port' in line else None
         honeypy.data('target_port', line['dest_port']) if 'dest_port' in line else None
-        honeypy.data('source_protokoll', line['protocol'].lower()) if 'protocol' in line else None
-        honeypy.data('target_protokoll', line['protocol'].lower()) if 'protocol' in line else None
+        honeypy.data('source_protocol', line['protocol'].lower()) if 'protocol' in line else None
+        honeypy.data('target_protocol', line['protocol'].lower()) if 'protocol' in line else None
 
         honeypy.request('description', 'Honeypy Honeypot')
 
@@ -1406,8 +1413,8 @@ def citrix():
 
         citrix.data('target_address', ECFG['ip_ext'])
         citrix.data('target_port', '80')
-        citrix.data('source_protokoll', 'tcp')
-        citrix.data('target_protokoll', 'tcp')
+        citrix.data('source_protocol', 'tcp')
+        citrix.data('target_protocol', 'tcp')
 
         citrix.request('description', 'Citrix Honeypot')
 

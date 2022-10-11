@@ -247,8 +247,8 @@ class EAlert:
         return()
 
     def data(self, key, value):
-        keywords = ("source_address", "target_address", "source_port", "target_port", "source_protokoll",
-                    "target_protokoll", "timestamp", "timezone", "analyzer_id", "cident", "corigin", "ctext")
+        keywords = ("source_address", "target_address", "source_port", "target_port", "source_protocol",
+                    "target_protocol", "timestamp", "timezone", "analyzer_id", "cident", "corigin", "ctext")
 
         if key in keywords:
             self.DATA[key] = value
@@ -266,8 +266,8 @@ class EAlert:
         return(True)
 
     def dataCheck(self):
-        keywords = ("source_address", "target_address", "source_port", "target_port", "source_protokoll",
-                    "target_protokoll", "source_ip_version", "target_ip_version", "timestamp", "timezone",
+        keywords = ("source_address", "target_address", "source_port", "target_port", "source_protocol",
+                    "target_protocol", "source_ip_version", "target_ip_version", "timestamp", "timezone",
                     "analyzer_id")
 
         for keyword in keywords:
@@ -304,8 +304,8 @@ class EAlert:
         Alert = etree.SubElement(self.esm, "Alert")
         etree.SubElement(Alert, "Analyzer", id=self.DATA["analyzer_id"])
         etree.SubElement(Alert, "CreateTime", tz=self.DATA["timezone"]).text = self.DATA["timestamp"]
-        etree.SubElement(Alert, "Source", category=self.DATA["source_ip_version"], port=str(self.DATA["source_port"]), protocol=self.DATA["source_protokoll"]).text = self.DATA["source_address"]
-        etree.SubElement(Alert, "Target", category=self.DATA["target_ip_version"], port=str(self.DATA["target_port"]), protocol=self.DATA["target_protokoll"]).text = self.DATA["target_address"]
+        etree.SubElement(Alert, "Source", category=self.DATA["source_ip_version"], port=str(self.DATA["source_port"]), protocol=self.DATA["source_protocol"]).text = self.DATA["source_address"]
+        etree.SubElement(Alert, "Target", category=self.DATA["target_ip_version"], port=str(self.DATA["target_port"]), protocol=self.DATA["target_protocol"]).text = self.DATA["target_address"]
 
         if "corigin" and "cident" and "ctext" in self.DATA:
             etree.SubElement(Alert, "Classification", origin=self.DATA["corigin"], ident=self.DATA["cident"], text=self.DATA["ctext"])
@@ -339,10 +339,10 @@ class EAlert:
         iAlert["fields"] = dict(analyzer_id=self.DATA['analyzer_id'],
                                 source_address=self.DATA['source_address'],
                                 source_port=int(self.DATA['source_port']),
-                                source_protokoll=self.DATA['source_protokoll'],
+                                source_protocol=self.DATA['source_protocol'],
                                 target_address=self.DATA['target_address'],
                                 target_port=int(self.DATA['target_port']),
-                                target_protokoll=self.DATA['target_protokoll']
+                                target_protocol=self.DATA['target_protocol']
                                 )
         """ append cident, corigin, ctext """
         for index in ['cident', 'corigin', 'ctext']:
@@ -374,10 +374,10 @@ class EAlert:
         mAlert["fields"] = dict(analyzer_id=self.DATA['analyzer_id'],
                                 source_address=self.DATA['source_address'],
                                 source_port=int(self.DATA['source_port']),
-                                source_protokoll=self.DATA['source_protokoll'],
+                                source_protocol=self.DATA['source_protocol'],
                                 target_address=self.DATA['target_address'],
                                 target_port=int(self.DATA['target_port']),
-                                target_protokoll=self.DATA['target_protokoll']
+                                target_protocol=self.DATA['target_protocol']
                                 )
         """ append cident, corigin, ctext """
         for index in ['cident', 'corigin', 'ctext']:
@@ -413,12 +413,12 @@ class EAlert:
         print(f'Source IP       : {self.DATA["source_address"]}')
         print(f'Source IPv      : {self.DATA["source_ip_version"]}')
         print(f'Source Port     : {self.DATA["source_port"]}')
-        print(f'Source Protocol : {self.DATA["source_protokoll"]}')
+        print(f'Source Protocol : {self.DATA["source_protocol"]}')
         print(f'            ')
         print(f'Target IP       : {self.DATA["target_address"]}')
         print(f'Target IPv      : {self.DATA["target_ip_version"]}')
         print(f'Target Port     : {self.DATA["target_port"]}')
-        print(f'Target Protocol : {self.DATA["target_protokoll"]}')
+        print(f'Target Protocol : {self.DATA["target_protocol"]}')
         print(f'-- REQUEST ----------------------------------')
 
         for key, value in list(self.REQUEST.items()):
