@@ -501,7 +501,7 @@ def rdpy():
             break
         
         try:
-            line.split("Connection from ")[1].split(":")[1]
+            int(line.split("Connection from ")[1].split(":")[1])
         except:
             break
 
