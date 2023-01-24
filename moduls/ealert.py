@@ -525,19 +525,19 @@ class EAlert:
             return(True)
 
         except requests.exceptions.Timeout:
-            self.logger.warning(f'ewsWebservice Timeout to remote Host {host}', '2')
+            # self.logger.warning(f'ewsWebservice Timeout to remote Host {host}', '2')
             return(False)
 
         except requests.exceptions.ConnectionError:
-            self.logger.warning(f"ewsWebservice Remote Host {host} didn't answer!", '2')
+            # self.logger.warning(f"ewsWebservice Remote Host {host} didn't answer!", '2')
             return(False)
 
         except requests.exceptions.HTTPError:
-            self.logger.warning(f'ewsWebservice HTTP(S) Errorcode != 200', '2')
+            # self.logger.warning(f'ewsWebservice HTTP(S) Errorcode != 200', '2')
             return(False)
 
         except ssl.WantWriteError:
-            self.logger.warning(f'ewsWebservice SSL Write Buffer too small', '2')
+            # self.logger.warning(f'ewsWebservice SSL Write Buffer too small', '2')
             return(False)
 
     def ewsprint(self):
