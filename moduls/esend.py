@@ -103,19 +103,19 @@ def ESend(ECFG):
             return(True)
 
         except requests.exceptions.Timeout:
-            logger.warning(f'ewsWebservice Timeout to remote Host {host}', '2')
+            # logger.warning(f'ewsWebservice Timeout to remote Host {host}', '2')
             return(False)
 
         except requests.exceptions.ConnectionError:
-            logger.warning(f"ewsWebservice Remote Host {host} didn't answer!", '2')
+            # logger.warning(f"ewsWebservice Remote Host {host} didn't answer!", '2')
             return(False)
 
         except requests.exceptions.HTTPError:
-            logger.warning(f'ewsWebservice HTTP(S) Errorcode != 200', '2')
+            # logger.warning(f'ewsWebservice HTTP(S) Errorcode != 200', '2')
             return(False)
 
         except ssl.WantWriteError:
-            logger.warning(f'ewsWebservice SSL Write Buffer too small', '2')
+            # logger.warning(f'ewsWebservice SSL Write Buffer too small', '2')
             return(False)
 
     """ Main instance for this Modul """
