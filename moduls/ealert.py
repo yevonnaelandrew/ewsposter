@@ -81,25 +81,6 @@ class EAlert:
             self.c = self.con.cursor()
             self.sqlite3connect = True
 
-        if self.MODUL == 'GLASTOPFV3' and self.sqlite3connect is True:
-            if self.maxid == 0:
-                try:
-                    self.c.execute("SELECT max(id) from events;")
-                    self.maxid = self.c.fetchone()["max(id)"]
-                    if self.maxid is None:
-                        self.maxid = 0
-                        return('false')
-                except sqlite3.OperationalError as e:
-                    self.logger.warning(f'SQLite3 Error on Glastopf Database {e}', '2')
-                    return('false')
-
-            if self.maxid >= linecounter:
-                self.c.execute("SELECT * from events where id = ?", (str(linecounter),))
-                self.alertCount(self.MODUL, "add_counter", item)
-                return(dict(self.c.fetchone()))
-            else:
-                return('')
-
         if self.MODUL == 'DIONAEA' and self.sqlite3connect is True:
             if self.maxid == 0:
                 try:
@@ -316,41 +297,6 @@ class EAlert:
             file.close
             return()
 
-    def influxAlert(self):
-        iAlert = {}
-        iAlert["measurement"] = "honeypots"
-        iAlert["tags"] = dict(honeypot=self.MODUL.lower()
-                              )
-        iAlert["time"] = f"{self.DATA['timestamp'][0:10]}T{self.DATA['timestamp'][11:19]}{self.DATA['timezone']}"
-        iAlert["fields"] = dict(analyzer_id=self.DATA['analyzer_id'],
-                                source_address=self.DATA['source_address'],
-                                source_port=int(self.DATA['source_port']),
-                                source_protokoll=self.DATA['source_protokoll'],
-                                target_address=self.DATA['target_address'],
-                                target_port=int(self.DATA['target_port']),
-                                target_protokoll=self.DATA['target_protokoll']
-                                )
-        """ append cident, corigin, ctext """
-        for index in ['cident', 'corigin', 'ctext']:
-            if index in self.DATA:
-                iAlert['fields'][index] = self.DATA[index]
-
-        """ append additional data """
-        for key, value in self.ADATA.items():
-            if key in ['host', 'externalIP', 'internalIP', 'uuid']:
-                continue
-            else:
-                iAlert['fields'][key] = value
-
-        self.iesm.append(iAlert)
-
-        return()
-
-    def influxWrite(self):
-        client = InfluxDBClient(self.ECFG['influx_host'], self.ECFG['influx_port'], self.ECFG['influx_username'], self.ECFG['influx_password'], self.ECFG['influx_bucket'])
-        client.write_points(self.iesm)
-        self.iesm.clear()
-
     def ewsVerbose(self):
         print(f'--------------- {self.MODUL} ---------------')
         print(f'NodeID          : {self.DATA["analyzer_id"]}')
@@ -422,7 +368,6 @@ class EAlert:
         """ Create ews and json and influx alert """
         self.ewsAlert() if self.ECFG['ews'] is True or self.ECFG["hpfeed"] is True else None
         self.jsonAlert() if self.ECFG['json'] is True else None
-        self.influxAlert() if self.ECFG['influxdb'] is True else None
 
         """ View Alert details if ARG Verbose is on """
         if self.ECFG['a.verbose'] is True:
@@ -472,17 +417,6 @@ class EAlert:
         """ Check Json write """
         if self.ECFG["json"] is True:
             self.jsonWrite()
-
-        """ Check HpFeed write """
-        if self.ECFG["hpfeed"] is True:
-            if self.ECFG["hpfformat"].lower() == "json":
-                self.hpfeedsend('json')
-            else:
-                self.hpfeedsend('xml')
-
-        """ Check InfluxDB write """
-        if self.ECFG['influxdb'] is True:
-            self.influxWrite()
 
         """ Check Ews and send via webservice or drop to spool """
         if self.ECFG["ews"] is True:
